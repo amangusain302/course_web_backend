@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, logout, getMyProfile, changePassword, updateProfile, updateProfilePicture, forgetPassword, resetPassword } = require('../controllers/userController');
+const { register, login, logout, getMyProfile, changePassword, updateProfile, updateProfilePicture, forgetPassword, resetPassword, addToPlaylist, removeFromPlaylist } = require('../controllers/userController');
 const { isAuthenticated } = require('../middlewares/auth');
 const router = express.Router()
 
@@ -12,6 +12,8 @@ router.put('/updateprofile', isAuthenticated, updateProfile);
 router.put('/updateprofilepicture', isAuthenticated, updateProfilePicture);
 router.post('/forgetpassword', forgetPassword);
 router.put('/resetpassword/:token', resetPassword);
+router.post('/addtoplaylist', isAuthenticated, addToPlaylist);
+router.delete('/removefromplaylist', isAuthenticated, removeFromPlaylist);
 
 
 module.exports = router;
