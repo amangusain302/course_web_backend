@@ -1,12 +1,17 @@
 const express = require('express');
-const { isAuthenticated } = require('../middlewares/auth');
-const { contact } = require('../controllers/otherController');
+const { isAuthenticated, authorizeAdmin } = require('../middlewares/auth');
+const { contact, courseRequest, getDashboardStats } = require('../controllers/otherController');
 const router = express.Router();
 
 //contact form
-router.post("/contact", isAuthenticated, contact)
+router.post("/contact", contact)
 
 //request form 
-router.post("/courserequest", isAuthenticated, contact)
+router.post("/courserequest", courseRequest);
+
+
+//get admin Dashboard stats 
+router.get("/admin/stats", isAuthenticated, authorizeAdmin, getDashboardStats);
+
 
 module.exports = router;

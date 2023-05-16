@@ -4,6 +4,8 @@ const { connectDB } = require('./config/database');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary');
 const razorpay = require('razorpay');
+const NodeCron = require('node-cron');
+const Stats = require("./models/Stats");
 const app = express();
 config({
     path: "./config/config.env"
@@ -31,10 +33,12 @@ const { ErrorMiddleware } = require('./middlewares/Error');
 const course = require('./routes/courseRoute');
 const user = require('./routes/userRoute');
 const payment = require('./routes/paymentRoute');
+const other = require('./routes/otherRoute');
 
 app.use('/api/v1', course);
 app.use('/api/v1', user);
 app.use('/api/v1', payment);
+app.use('/api/v1', other);
 
 
 
@@ -44,6 +48,15 @@ app.use('/api/v1', payment);
 app.use(ErrorMiddleware);
 connectDB();
 const port = process.env.PORT;
+
+NodeCron.schedule("0 0 0 1 * *", async() => {
+    console.log("a");
+    try {
+        await Stats.create({});
+    } catch (err) {
+        console.log(err)
+    }
+});
 
 
 app.listen(port, () => {

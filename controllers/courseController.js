@@ -1,11 +1,25 @@
 const { catchAsyncError } = require('../middlewares/catchAsyncError');
+const courseModel = require('../models/Course');
 const Course = require('../models/Course');
+const Stats = require('../models/Stats');
 const ErrorHandler = require('../utils/errorHandler');
 const getDataUri = require('../utils/getDataUri');
 const cloudinary = require('cloudinary')
     //get all courses
 exports.getAllCourse = catchAsyncError(async(req, res, next) => {
-    const courses = await Course.find().select('-lectures');
+
+    const keyword = req.query.keyword || " ";
+    const category = req.query.category || " ";
+    const courses = await Course.find({
+        title: {
+            $regex: keyword,
+            $options: "i"
+        },
+        category: {
+            $regex: category,
+            $options: "i"
+        }
+    }).select('-lectures');
     res.status(200).json({
         success: true,
         courses
@@ -141,4 +155,22 @@ exports.deleteLecture = catchAsyncError(async(req, res, next) => {
         success: true,
         message: "Lecture Deleted Successfully"
     });
+})
+
+
+courseModel.watch().on("change", async() => {
+    const stats = await Stats.find({}).sort({ createdAt: "desc" }).limit(1);
+    const courses = await courseModel.find({});
+
+    var totalViews = 0;
+
+    for (let i = 0; i < courses.length; i++) {
+        console.log(courses[i].views);
+        totalViews += courses[i].views;
+    }
+    stats[0].views = totalViews;
+    stats[0].createdAt = new Date(Date.now());
+
+
+    await stats[0].save();
 })
