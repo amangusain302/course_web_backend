@@ -12,7 +12,7 @@ config({
 });
 
 exports.instance = new razorpay({
-    key_id: process.env.RAZORPAY_API_ID,
+    key_id: process.env.RAZORPAY_API_ID || "rzp_test_ATm31E9nqQq1He",
     key_secret: process.env.RAZORPAY_API_SECRET
 })
 
@@ -41,7 +41,9 @@ app.use('/api/v1', payment);
 app.use('/api/v1', other);
 
 
-
+app.get("/", (req, res) => {
+    res.send("<H1 align='center' > WELCOME TO COURSE WEB PLEASE VIST OUR FORNTEND SITE</H1><a href='http://localhost:3000/'>Click</a>")
+})
 
 
 
