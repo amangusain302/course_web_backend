@@ -5,12 +5,13 @@ const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary');
 const razorpay = require('razorpay');
 const NodeCron = require('node-cron');
+const cors = require('cors');
 const Stats = require("./models/Stats");
 const app = express();
 config({
     path: "./config/config.env"
 });
-
+app.use("*", cors());
 exports.instance = new razorpay({
     key_id: process.env.RAZORPAY_API_ID || "rzp_test_ATm31E9nqQq1He",
     key_secret: process.env.RAZORPAY_API_SECRET
