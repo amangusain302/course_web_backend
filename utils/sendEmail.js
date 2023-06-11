@@ -3,12 +3,18 @@ const { createTransport } = require('nodemailer')
 
 exports.sendEmail = async(to, subject, text) => {
     const transporter = createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        requireTLS: true,
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-        }
+            user: "fixebuy.official@gmail.com",
+            pass: "bvaliiczaplexibw"
+        },
+        tls: {
+            // do not fail on invalid certs
+            pendingUnauthorized: false
+        },
     });
 
     await transporter.sendMail({ to, subject, text });

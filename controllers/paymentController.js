@@ -18,7 +18,7 @@ exports.buySubscription = catchAsyncError(async(req, res, next) => {
     // console.log(subscription)
     user.subscription.id = subscription.id;
     user.subscription.status = subscription.status
-        // console.log(subscription.id)
+        console.log(subscription.id)
 
     await user.save()
     res.status(201).json({
@@ -34,12 +34,17 @@ exports.paymentVerification = catchAsyncError(async(req, res, next) => {
     var user = await User.findById(req.user._id);
 
 
-    const subscripiton_id = user.subscripiton_id;
-    const generated_singature = crypto.createHmac("sha256", process.env.RAZORPAY_API_SECRET)
-        .update(razorpay_payment_id + "|" + subscripiton_id, "utf-8").digest("hex");
+    const subscripiton_id = user.subscription.id;
+    // console.log(subscripiton_id);
+    
+    const generated_signature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
+        .update(razorpay_payment_id + "|" + subscripiton_id, "utf-8")
+        .digest("hex");
 
-    const isAuthentic = generated_singature === razorpay_signature;
-
+    // console.log(generated_signature , razorpay_signature);
+    const isAuthentic = generated_signature === razorpay_signature;
+    // console.log('paymentfailed');
     if (!isAuthentic) return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
 
     //database comes
@@ -73,7 +78,7 @@ exports.cancelSubscription = catchAsyncError(async(req, res, next) => {
 
     let refund = false;
 
-    await instance.subscription.cancel(subscripitonId);
+    await instance.subscriptions.cancel(subscripitonId);
 
     const payment = await Payment.findOne({ razorpay_subscription_id: subscripitonId, });
 
@@ -82,12 +87,12 @@ exports.cancelSubscription = catchAsyncError(async(req, res, next) => {
     const refundTime = process.env.REFUND_DAYS * 24 * 60 * 60 * 1000;
 
     if (refundTime > gap) {
-        // await instance.payments.refund(payment.razorpay_payment_id);
+        await instance.payments.refund(payment.razorpay_payment_id);
         refund = true;
     }
-    await payment.remove();
+    await payment.deleteOne();
     user.subscription.id = undefined;
-    user.subscripition.status = undefined;
+    user.subscription.status = undefined;
     await user.save();
 
     res.status(200).json({

@@ -63,12 +63,21 @@ exports.login = catchAsyncError(async(req, res, next) => {
     if (!isMatch) return next(new ErrorHandler("Incorrect Email and Password", 401));
 
     sendToken(res, user, `Welcome Back ${user.name}`, 200)
-})
+    // res.status(200).cookie("token", "ksjfsakjjskjak", {
+    //     maxAge: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+    //     httpOnly: true,
+    // }).json({
+    //     success: true,
+    //     message : "login successfuly",
+    //     user
+    // })
+}   )
 
 
 
 exports.getMyProfile = catchAsyncError(async(req, res, next) => {
     const user = await User.findById(req.user._id)
+    // console.log(user)
     res.status(200).json({
         success: true,
         user
@@ -117,7 +126,12 @@ exports.updateProfile = catchAsyncError(async(req, res, next) => {
     if (name) user.name = name;
     if (email) user.email = email;
 
-    await user.save();
+    await user.save().catch(err => {
+        if(err.code === 11000){
+            return next(new ErrorHandler("Email is already exist", 409));
+        }
+        return next(new ErrorHandler(err.message, 500));
+    })
 
     res.status(200).json({
         success: true,
@@ -162,6 +176,7 @@ exports.forgetPassword = catchAsyncError(async(req, res, next) => {
         return next(new ErrorHandler("User not Found", 400));
 
     const resetToken = await user.getResetToken();
+    console.log(resetToken)
 
     await user.save();
 
@@ -181,7 +196,7 @@ exports.forgetPassword = catchAsyncError(async(req, res, next) => {
 exports.resetPassword = catchAsyncError(async(req, res, next) => {
     const token = req.params.token
 
-    resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
+    const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await User.findOne({
         resetPasswordToken,
@@ -189,8 +204,9 @@ exports.resetPassword = catchAsyncError(async(req, res, next) => {
             $gt: Date.now()
         }
     });
-    if (!user)
+    if (!user){
         return next(new ErrorHandler("Token is Invaild or has been expired", 400))
+    }
 
     user.password = req.body.password;
     user.resetPasswordToken = undefined
